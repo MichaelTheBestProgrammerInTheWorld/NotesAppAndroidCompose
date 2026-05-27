@@ -12,10 +12,30 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.createSavedStateHandle
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+
 class NoteDetailViewModel(
     private val noteUseCases: NoteUseCases,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+    companion object {
+        val NOTE_USE_CASES_KEY = object : androidx.lifecycle.viewmodel.CreationExtras.Key<NoteUseCases> {}
+
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val savedStateHandle = createSavedStateHandle()
+                val noteUseCases = this[NOTE_USE_CASES_KEY] as NoteUseCases
+                NoteDetailViewModel(
+                    noteUseCases = noteUseCases,
+                    savedStateHandle = savedStateHandle
+                )
+            }
+        }
+    }
 
     private val _state = mutableStateOf(NoteDetailState())
     val state: State<NoteDetailState> = _state

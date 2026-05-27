@@ -10,9 +10,24 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+
 class NotesViewModel(
     private val noteUseCases: NoteUseCases
 ) : ViewModel() {
+
+    companion object {
+        val NOTE_USE_CASES_KEY = object : androidx.lifecycle.viewmodel.CreationExtras.Key<NoteUseCases> {}
+
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val noteUseCases = this[NOTE_USE_CASES_KEY] as NoteUseCases
+                NotesViewModel(noteUseCases = noteUseCases)
+            }
+        }
+    }
 
     private val _state = mutableStateOf(NotesState())
     val state: State<NotesState> = _state

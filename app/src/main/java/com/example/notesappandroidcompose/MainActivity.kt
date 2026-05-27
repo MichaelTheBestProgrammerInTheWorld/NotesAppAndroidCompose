@@ -15,13 +15,13 @@ import androidx.room.Room
 import com.example.notesappandroidcompose.data.local.NoteDatabase
 import com.example.notesappandroidcompose.data.repository.NoteRepositoryImpl
 import com.example.notesappandroidcompose.domain.use_case.*
-import com.example.notesappandroidcompose.presentation.ViewModelFactory
 import com.example.notesappandroidcompose.presentation.navigation.Screen
 import com.example.notesappandroidcompose.presentation.note_detail.NoteDetailScreen
 import com.example.notesappandroidcompose.presentation.note_detail.NoteDetailViewModel
 import com.example.notesappandroidcompose.presentation.notes_list.NotesListScreen
 import com.example.notesappandroidcompose.presentation.notes_list.NotesViewModel
-import com.example.notesappandroidcompose.ui.theme.NotesAppAndroidComposeTheme
+import androidx.lifecycle.viewmodel.MutableCreationExtras
+import com.example.notesappandroidcompose.presentation.theme.NotesAppAndroidComposeTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,18 +41,26 @@ class MainActivity : ComponentActivity() {
             saveNote = SaveNoteUseCase(repository),
             getNoteById = GetNoteByIdUseCase(repository)
         )
-        val factory = ViewModelFactory(noteUseCases)
 
         enableEdgeToEdge()
         setContent {
             NotesAppAndroidComposeTheme {
                 val navController = rememberNavController()
+                val extras = remember(noteUseCases) {
+                    MutableCreationExtras().apply {
+                        set(NotesViewModel.NOTE_USE_CASES_KEY, noteUseCases)
+                        set(NoteDetailViewModel.NOTE_USE_CASES_KEY, noteUseCases)
+                    }
+                }
                 NavHost(
                     navController = navController,
                     startDestination = Screen.NotesListScreen.route
                 ) {
                     composable(route = Screen.NotesListScreen.route) {
-                        val viewModel: NotesViewModel = viewModel(factory = factory)
+                        val viewModel: NotesViewModel = viewModel(
+                            factory = NotesViewModel.Factory,
+                            extras = extras
+                        )
                         NotesListScreen(
                             state = viewModel.state.value,
                             onEvent = viewModel::onEvent,
@@ -75,7 +83,10 @@ class MainActivity : ComponentActivity() {
                             }
                         )
                     ) {
-                        val viewModel: NoteDetailViewModel = viewModel(factory = factory)
+                        val viewModel: NoteDetailViewModel = viewModel(
+                            factory = NoteDetailViewModel.Factory,
+                            extras = extras
+                        )
                         NoteDetailScreen(
                             state = viewModel.state.value,
                             eventFlow = viewModel.eventFlow,
