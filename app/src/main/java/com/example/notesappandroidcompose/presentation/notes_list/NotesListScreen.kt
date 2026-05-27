@@ -9,6 +9,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -70,7 +71,7 @@ fun NotesListScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(8.dp)
                 ) {
-                    items(state.notes, key = { it.id ?: 0 }) { note ->
+                    itemsIndexed(state.notes, key = { _, note -> note.id ?: 0 }) { index, note ->
                         val isSelected = state.selectedNotes.contains(note)
                         
                         // Swipe to delete logic
@@ -104,6 +105,7 @@ fun NotesListScreen(
                         ) {
                             NoteItem(
                                 note = note,
+                                index = index,
                                 isSelected = isSelected,
                                 modifier = Modifier.combinedClickable(
                                     onClick = {

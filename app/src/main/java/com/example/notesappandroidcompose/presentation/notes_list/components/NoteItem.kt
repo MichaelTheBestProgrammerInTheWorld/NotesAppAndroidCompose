@@ -17,10 +17,14 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AttachFile
 import com.example.notesappandroidcompose.domain.model.Note
+import com.example.notesappandroidcompose.domain.model.AttachmentType
+import coil3.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
 
 @Composable
 fun NoteItem(
     note: Note,
+    index: Int,
     modifier: Modifier = Modifier,
     isSelected: Boolean = false,
     onNoteClick: () -> Unit
@@ -46,7 +50,7 @@ fun NoteItem(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = note.title,
+                    text = "${index + 1}. ${note.title}",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -54,26 +58,55 @@ fun NoteItem(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
                 )
-                if (note.attachments.isNotEmpty()) {
-                    Icon(
-                        imageVector = Icons.Default.AttachFile,
-                        contentDescription = "Has attachments",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp).padding(end = 4.dp)
-                    )
-                }
                 if (isSelected) {
                     Checkbox(checked = true, onCheckedChange = null)
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = note.content,
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = note.content,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                
+                val firstImage = note.attachments.firstOrNull { it.type == AttachmentType.IMAGE }
+                if (firstImage != null) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    AsyncImage(
+                        model = firstImage.uri,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(60.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(MaterialTheme.colorScheme.surface),
+                        contentScale = ContentScale.Crop
+                    )
+                } else if (note.attachments.isNotEmpty()) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Box(
+                        modifier = Modifier
+                            .size(60.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AttachFile,
+                            contentDescription = "Has attachments",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+            }
         }
     }
 }
