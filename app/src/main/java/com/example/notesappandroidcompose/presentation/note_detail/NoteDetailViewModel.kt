@@ -95,7 +95,8 @@ class NoteDetailViewModel(
                             title = state.value.title,
                             content = state.value.content,
                             id = currentNoteId,
-                            attachments = state.value.attachments
+                            attachments = state.value.attachments,
+                            timestamp = System.currentTimeMillis()
                         )
                     )
                     _eventFlow.emit(UiEvent.SaveNote)

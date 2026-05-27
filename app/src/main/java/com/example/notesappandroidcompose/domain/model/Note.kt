@@ -4,5 +4,6 @@ data class Note(
     val id: Int? = null,
     val title: String,
     val content: String,
-    val attachments: List<Attachment> = emptyList()
+    val attachments: List<Attachment> = emptyList(),
+    val timestamp: Long
 )

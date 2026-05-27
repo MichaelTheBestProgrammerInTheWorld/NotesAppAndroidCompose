@@ -8,7 +8,8 @@ fun NoteEntity.toNote(): Note {
         id = id,
         title = title,
         content = content,
-        attachments = attachments
+        attachments = attachments,
+        timestamp = timestamp
     )
 }
 
@@ -17,6 +18,7 @@ fun Note.toNoteEntity(): NoteEntity {
         id = id,
         title = title,
         content = content,
-        attachments = attachments
+        attachments = attachments,
+        timestamp = timestamp
     )
 }
