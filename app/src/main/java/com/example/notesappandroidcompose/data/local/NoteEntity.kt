@@ -12,5 +12,7 @@ data class NoteEntity(
     val content: String,
     val attachments: List<Attachment>,
     val timestamp: Long,
-    val position: Int
+    val position: Int,
+    val isArchived: Boolean = false,
+    val isDeleted: Boolean = false
 )

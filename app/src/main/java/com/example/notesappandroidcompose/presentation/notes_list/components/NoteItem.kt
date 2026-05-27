@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,6 +22,7 @@ import com.example.notesappandroidcompose.domain.model.Note
 import com.example.notesappandroidcompose.domain.model.AttachmentType
 import coil3.compose.AsyncImage
 import androidx.compose.ui.layout.ContentScale
+import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -66,13 +68,17 @@ fun NoteItem(
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
+            val richTextState = rememberRichTextState()
+            LaunchedEffect(note.content) {
+                richTextState.setHtml(note.content)
+            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = note.content,
+                        text = richTextState.annotatedString,
                         fontSize = 14.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 3,

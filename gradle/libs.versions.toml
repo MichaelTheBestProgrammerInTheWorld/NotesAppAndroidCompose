@@ -12,6 +12,7 @@ room = "2.6.1"
 navigation = "2.8.7"
 ksp = "2.1.0-1.0.29"
 coil = "3.1.0"
+richeditor-compose = "1.0.0-rc10"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -40,6 +41,7 @@ room-compiler = { group = "androidx.room", name = "room-compiler", version.ref =
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
+richeditor-compose = { group = "com.mohamedrejeb.richeditor", name = "richeditor-compose", version.ref = "richeditor-compose" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

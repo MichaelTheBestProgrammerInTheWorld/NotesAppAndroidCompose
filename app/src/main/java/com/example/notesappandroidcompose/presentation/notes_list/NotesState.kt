@@ -8,5 +8,7 @@ data class NotesState(
     val searchQuery: String = "",
     val selectedNotes: Set<Note> = emptySet(),
     val isSelectionMode: Boolean = false,
-    val showDeleteConfirmation: Boolean = false
+    val showDeleteConfirmation: Boolean = false,
+    val currentView: NotesView = NotesView.All,
+    val isGridView: Boolean = false
 )

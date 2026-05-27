@@ -45,13 +45,37 @@ class NotesViewModel(
                     noteUseCases.deleteNote(event.note)
                 }
             }
+            is NotesEvent.SoftDeleteNote -> {
+                viewModelScope.launch {
+                    noteUseCases.saveNotes(listOf(event.note.copy(isDeleted = true, isArchived = false)))
+                }
+            }
+            is NotesEvent.RestoreNote -> {
+                viewModelScope.launch {
+                    noteUseCases.saveNotes(listOf(event.note.copy(isDeleted = false)))
+                }
+            }
+            is NotesEvent.ArchiveNote -> {
+                viewModelScope.launch {
+                    noteUseCases.saveNotes(listOf(event.note.copy(isArchived = true, isDeleted = false)))
+                }
+            }
+            is NotesEvent.UnarchiveNote -> {
+                viewModelScope.launch {
+                    noteUseCases.saveNotes(listOf(event.note.copy(isArchived = false)))
+                }
+            }
             is NotesEvent.DeleteAllNotes -> {
                 viewModelScope.launch {
-                    // Logic to delete all notes would usually be in a use case
-                    // For simplicity, we'll assume deleteNote can handle list or add a new use case
                     _state.value.notes.let { notes ->
                         noteUseCases.deleteNote(notes)
                     }
+                }
+            }
+            is NotesEvent.EmptyTrash -> {
+                viewModelScope.launch {
+                    val trashNotes = _state.value.notes.filter { it.isDeleted }
+                    noteUseCases.deleteNote(trashNotes)
                 }
             }
             is NotesEvent.ToggleSelection -> {
@@ -75,6 +99,26 @@ class NotesViewModel(
                     )
                 }
             }
+            is NotesEvent.SoftDeleteSelectedNotes -> {
+                viewModelScope.launch {
+                    val updated = _state.value.selectedNotes.map { it.copy(isDeleted = true, isArchived = false) }
+                    noteUseCases.saveNotes(updated)
+                    _state.value = _state.value.copy(
+                        selectedNotes = emptySet(),
+                        isSelectionMode = false
+                    )
+                }
+            }
+            is NotesEvent.ArchiveSelectedNotes -> {
+                viewModelScope.launch {
+                    val updated = _state.value.selectedNotes.map { it.copy(isArchived = true, isDeleted = false) }
+                    noteUseCases.saveNotes(updated)
+                    _state.value = _state.value.copy(
+                        selectedNotes = emptySet(),
+                        isSelectionMode = false
+                    )
+                }
+            }
             is NotesEvent.ShowDeleteConfirmation -> {
                 _state.value = _state.value.copy(showDeleteConfirmation = event.show)
             }
@@ -84,6 +128,13 @@ class NotesViewModel(
             }
             is NotesEvent.MoveNote -> {
                 moveNote(event.fromIndex, event.toIndex)
+            }
+            is NotesEvent.ChangeView -> {
+                _state.value = _state.value.copy(currentView = event.view)
+                filterNotes()
+            }
+            is NotesEvent.ToggleGridView -> {
+                _state.value = _state.value.copy(isGridView = !_state.value.isGridView)
             }
         }
     }
@@ -101,8 +152,8 @@ class NotesViewModel(
         }
 
         // Immediate UI update to ensure smooth drag-and-drop
+        // We only update the list we are currently looking at
         _state.value = _state.value.copy(
-            notes = updatedNotes,
             filteredNotes = updatedNotes
         )
 
@@ -113,12 +164,20 @@ class NotesViewModel(
 
     private fun filterNotes() {
         val query = _state.value.searchQuery.lowercase()
+        val currentView = _state.value.currentView
+        
+        val baseNotes = when (currentView) {
+            is NotesView.All -> _state.value.notes.filter { !it.isArchived && !it.isDeleted }
+            is NotesView.Archived -> _state.value.notes.filter { it.isArchived && !it.isDeleted }
+            is NotesView.Trash -> _state.value.notes.filter { it.isDeleted }
+        }
+
         if (query.isBlank()) {
-            _state.value = _state.value.copy(filteredNotes = _state.value.notes)
+            _state.value = _state.value.copy(filteredNotes = baseNotes)
             return
         }
 
-        val filtered = _state.value.notes.filterIndexed { index, note ->
+        val filtered = baseNotes.filterIndexed { index, note ->
             note.title.lowercase().contains(query) ||
             note.content.lowercase().contains(query) ||
             (index + 1).toString() == query ||
@@ -131,18 +190,8 @@ class NotesViewModel(
         getNotesJob?.cancel()
         getNotesJob = noteUseCases.getNotes()
             .onEach { notes ->
-                _state.value = _state.value.copy(
-                    notes = notes,
-                    filteredNotes = if (_state.value.searchQuery.isBlank()) notes else {
-                        val query = _state.value.searchQuery.lowercase()
-                        notes.filterIndexed { index, note ->
-                            note.title.lowercase().contains(query) ||
-                            note.content.lowercase().contains(query) ||
-                            (index + 1).toString() == query ||
-                            note.attachments.any { it.name.lowercase().contains(query) }
-                        }
-                    }
-                )
+                _state.value = _state.value.copy(notes = notes)
+                filterNotes()
             }
             .launchIn(viewModelScope)
     }

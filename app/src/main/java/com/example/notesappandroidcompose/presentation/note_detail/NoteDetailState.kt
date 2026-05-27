@@ -7,5 +7,6 @@ data class NoteDetailState(
     val content: String = "",
     val id: Int? = null,
     val attachments: List<Attachment> = emptyList(),
-    val position: Int = 0
+    val position: Int = 0,
+    val isRecording: Boolean = false
 )
