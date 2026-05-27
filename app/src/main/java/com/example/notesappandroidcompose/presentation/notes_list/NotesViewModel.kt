@@ -89,21 +89,22 @@ class NotesViewModel(
     }
 
     private fun moveNote(fromIndex: Int, toIndex: Int) {
-        val notes = _state.value.filteredNotes.toMutableList()
-        if (fromIndex !in notes.indices || toIndex !in notes.indices) return
+        val currentNotes = _state.value.filteredNotes
+        if (fromIndex !in currentNotes.indices || toIndex !in currentNotes.indices) return
 
-        val note = notes.removeAt(fromIndex)
-        notes.add(toIndex, note)
+        val newList = currentNotes.toMutableList()
+        val note = newList.removeAt(fromIndex)
+        newList.add(toIndex, note)
 
-        // Update positions based on the new order in the list
-        // Note: This logic assumes we are reordering the entire list or the filtered list.
-        // For simplicity, we'll map these back to the main list if filtered, 
-        // but reordering while filtered is tricky. 
-        // We'll only allow reordering when not searching for now, or apply to main list.
-        
-        val updatedNotes = notes.mapIndexed { index, n ->
+        val updatedNotes = newList.mapIndexed { index, n ->
             n.copy(position = index)
         }
+
+        // Immediate UI update to ensure smooth drag-and-drop
+        _state.value = _state.value.copy(
+            notes = updatedNotes,
+            filteredNotes = updatedNotes
+        )
 
         viewModelScope.launch {
             noteUseCases.saveNotes(updatedNotes)

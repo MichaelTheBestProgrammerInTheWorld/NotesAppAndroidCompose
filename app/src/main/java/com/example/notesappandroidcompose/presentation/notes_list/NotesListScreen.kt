@@ -44,11 +44,13 @@ fun NotesListScreen(
     val haptic = LocalHapticFeedback.current
     
     val currentOnEvent by rememberUpdatedState(onEvent)
+    val currentIsSelectionMode by rememberUpdatedState(state.isSelectionMode)
+    val currentSearchQuery by rememberUpdatedState(state.searchQuery)
 
     // Auto-scroll logic when dragging near edges
-    LaunchedEffect(draggedItemIndex) {
+    LaunchedEffect(draggedItemIndex != null) {
         if (draggedItemIndex != null) {
-            while (draggedItemIndex != null) {
+            while (true) {
                 val layoutInfo = lazyListState.layoutInfo
                 val viewportHeight = layoutInfo.viewportEndOffset.toFloat()
                 val currentTop = draggingItemInitialOffset + draggingOffset
@@ -140,6 +142,9 @@ fun NotesListScreen(
                 ) {
                     itemsIndexed(state.filteredNotes, key = { _, note -> note.id ?: 0 }) { index, note ->
                         val isSelected = state.selectedNotes.contains(note)
+                        val currentNote by rememberUpdatedState(note)
+                        val currentIndex by rememberUpdatedState(index)
+                        val currentIsSelected by rememberUpdatedState(isSelected)
                         
                         val isDragging = draggedItemIndex == index
                         val itemModifier = Modifier
@@ -155,35 +160,55 @@ fun NotesListScreen(
                                     Modifier.animateItem()
                                 }
                             )
-                            .pointerInput(state.searchQuery) {
-                                if (state.searchQuery.isNotEmpty()) return@pointerInput
+                            .pointerInput(Unit) {
                                 detectDragGesturesAfterLongPress(
                                     onDragStart = { _ ->
+                                        val isSearching = currentSearchQuery.isNotEmpty()
+                                        val isMultiSelect = state.selectedNotes.size > 1
+                                        
+                                        if (isSearching || isMultiSelect) {
+                                            currentOnEvent(NotesEvent.ToggleSelection(currentNote))
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            return@detectDragGesturesAfterLongPress
+                                        }
+
+                                        if (!currentIsSelected) {
+                                            currentOnEvent(NotesEvent.ToggleSelection(currentNote))
+                                        }
+
                                         lazyListState.layoutInfo.visibleItemsInfo
-                                            .find { it.index == index }
+                                            .find { it.index == currentIndex }
                                             ?.also { item ->
-                                                draggedItemIndex = index
+                                                draggedItemIndex = currentIndex
                                                 draggingItemInitialOffset = item.offset.toFloat()
                                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                             }
                                     },
                                     onDrag = { change, dragAmount ->
-                                        change.consume()
-                                        draggingOffset += dragAmount.y
-                                        
-                                        val currentOffset = draggingItemInitialOffset + draggingOffset
-                                        val overItem = lazyListState.layoutInfo.visibleItemsInfo
-                                            .firstOrNull { item ->
-                                                currentOffset.toInt() in item.offset..(item.offset + item.size)
-                                            }
-                                        
-                                        if (overItem != null && overItem.index != draggedItemIndex) {
-                                            draggedItemIndex?.let { fromIndex ->
-                                                currentOnEvent(NotesEvent.MoveNote(fromIndex, overItem.index))
-                                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                                draggedItemIndex = overItem.index
-                                                draggingItemInitialOffset = overItem.offset.toFloat()
-                                                draggingOffset = 0f
+                                        if (currentSearchQuery.isEmpty()) {
+                                            change.consume()
+                                            draggingOffset += dragAmount.y
+                                            
+                                            val draggingItem = lazyListState.layoutInfo.visibleItemsInfo
+                                                .find { it.index == draggedItemIndex }
+                                            val draggingItemSize = draggingItem?.size ?: 0
+                                            val currentCenter = draggingItemInitialOffset + draggingOffset + draggingItemSize / 2
+                                            
+                                            val overItem = lazyListState.layoutInfo.visibleItemsInfo
+                                                .firstOrNull { item ->
+                                                    currentCenter.toInt() in item.offset..(item.offset + item.size)
+                                                }
+                                            
+                                            if (overItem != null && overItem.index != draggedItemIndex) {
+                                                draggedItemIndex?.let { fromIndex ->
+                                                    currentOnEvent(NotesEvent.MoveNote(fromIndex, overItem.index))
+                                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                                    
+                                                    val prevItemOffset = draggingItemInitialOffset
+                                                    draggedItemIndex = overItem.index
+                                                    draggingItemInitialOffset = overItem.offset.toFloat()
+                                                    draggingOffset += prevItemOffset - draggingItemInitialOffset
+                                                }
                                             }
                                         }
                                     },
