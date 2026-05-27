@@ -8,4 +8,5 @@ sealed class NotesEvent {
     data class ToggleSelection(val note: Note) : NotesEvent()
     data object DeleteSelectedNotes : NotesEvent()
     data class ShowDeleteConfirmation(val show: Boolean) : NotesEvent()
+    data class SearchNotes(val query: String) : NotesEvent()
 }

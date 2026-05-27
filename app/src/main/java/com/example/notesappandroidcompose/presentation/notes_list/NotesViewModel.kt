@@ -78,7 +78,27 @@ class NotesViewModel(
             is NotesEvent.ShowDeleteConfirmation -> {
                 _state.value = _state.value.copy(showDeleteConfirmation = event.show)
             }
+            is NotesEvent.SearchNotes -> {
+                _state.value = _state.value.copy(searchQuery = event.query)
+                filterNotes()
+            }
         }
+    }
+
+    private fun filterNotes() {
+        val query = _state.value.searchQuery.lowercase()
+        if (query.isBlank()) {
+            _state.value = _state.value.copy(filteredNotes = _state.value.notes)
+            return
+        }
+
+        val filtered = _state.value.notes.filterIndexed { index, note ->
+            note.title.lowercase().contains(query) ||
+            note.content.lowercase().contains(query) ||
+            (index + 1).toString() == query ||
+            note.attachments.any { it.name.lowercase().contains(query) }
+        }
+        _state.value = _state.value.copy(filteredNotes = filtered)
     }
 
     private fun getNotes() {
@@ -86,7 +106,16 @@ class NotesViewModel(
         getNotesJob = noteUseCases.getNotes()
             .onEach { notes ->
                 _state.value = _state.value.copy(
-                    notes = notes
+                    notes = notes,
+                    filteredNotes = if (_state.value.searchQuery.isBlank()) notes else {
+                        val query = _state.value.searchQuery.lowercase()
+                        notes.filterIndexed { index, note ->
+                            note.title.lowercase().contains(query) ||
+                            note.content.lowercase().contains(query) ||
+                            (index + 1).toString() == query ||
+                            note.attachments.any { it.name.lowercase().contains(query) }
+                        }
+                    }
                 )
             }
             .launchIn(viewModelScope)

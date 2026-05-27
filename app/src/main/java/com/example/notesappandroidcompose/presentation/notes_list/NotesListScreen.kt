@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -13,6 +14,8 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -32,25 +35,45 @@ fun NotesListScreen(
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("My Notes") },
-                actions = {
-                    if (state.isSelectionMode) {
-                        IconButton(onClick = { onEvent(NotesEvent.ShowDeleteConfirmation(true)) }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Delete selected")
+            Column {
+                TopAppBar(
+                    title = { Text("My Notes") },
+                    actions = {
+                        if (state.isSelectionMode) {
+                            IconButton(onClick = { onEvent(NotesEvent.ShowDeleteConfirmation(true)) }) {
+                                Icon(Icons.Default.Delete, contentDescription = "Delete selected")
+                            }
+                        } else if (state.notes.isNotEmpty()) {
+                            IconButton(onClick = { onEvent(NotesEvent.ShowDeleteConfirmation(true)) }) {
+                                Icon(Icons.Default.Delete, contentDescription = "Delete all")
+                            }
                         }
-                    } else if (state.notes.isNotEmpty()) {
-                        IconButton(onClick = { onEvent(NotesEvent.ShowDeleteConfirmation(true)) }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Delete all")
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                        actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+                    )
                 )
-            )
+                OutlinedTextField(
+                    value = state.searchQuery,
+                    onValueChange = { onEvent(NotesEvent.SearchNotes(it)) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    placeholder = { Text("Search title, content, index or file name...") },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    trailingIcon = {
+                        if (state.searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { onEvent(NotesEvent.SearchNotes("")) }) {
+                                Icon(Icons.Default.Close, contentDescription = "Clear search")
+                            }
+                        }
+                    },
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp)
+                )
+            }
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -62,17 +85,23 @@ fun NotesListScreen(
         }
     ) { padding ->
         Box(modifier = Modifier.padding(padding)) {
-            if (state.notes.isEmpty()) {
+            if (state.filteredNotes.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = "No notes yet. Tap + to add one!", color = Color.Gray)
+                    Text(
+                        text = if (state.searchQuery.isEmpty()) "No notes yet. Tap + to add one!" else "No results found for \"${state.searchQuery}\"",
+                        color = Color.Gray
+                    )
                 }
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(8.dp)
                 ) {
-                    itemsIndexed(state.notes, key = { _, note -> note.id ?: 0 }) { index, note ->
+                    itemsIndexed(state.filteredNotes, key = { _, note -> note.id ?: 0 }) { index, note ->
                         val isSelected = state.selectedNotes.contains(note)
+                        
+                        // Find original index for display
+                        val originalIndex = state.notes.indexOf(note)
                         
                         // Swipe to delete logic
                         val dismissState = rememberSwipeToDismissBoxState(
@@ -105,7 +134,7 @@ fun NotesListScreen(
                         ) {
                             NoteItem(
                                 note = note,
-                                index = index,
+                                index = originalIndex,
                                 isSelected = isSelected,
                                 modifier = Modifier.combinedClickable(
                                     onClick = {
