@@ -46,20 +46,17 @@ class MainActivity : ComponentActivity() {
         setContent {
             NotesAppAndroidComposeTheme {
                 val navController = rememberNavController()
-                val extras = remember(noteUseCases) {
-                    MutableCreationExtras().apply {
-                        set(NotesViewModel.NOTE_USE_CASES_KEY, noteUseCases)
-                        set(NoteDetailViewModel.NOTE_USE_CASES_KEY, noteUseCases)
-                    }
-                }
+                
                 NavHost(
                     navController = navController,
                     startDestination = Screen.NotesListScreen.route
                 ) {
-                    composable(route = Screen.NotesListScreen.route) {
+                    composable(route = Screen.NotesListScreen.route) { backStackEntry ->
                         val viewModel: NotesViewModel = viewModel(
                             factory = NotesViewModel.Factory,
-                            extras = extras
+                            extras = MutableCreationExtras(backStackEntry.defaultViewModelCreationExtras).apply {
+                                set(NotesViewModel.NOTE_USE_CASES_KEY, noteUseCases)
+                            }
                         )
                         NotesListScreen(
                             state = viewModel.state.value,
@@ -82,10 +79,12 @@ class MainActivity : ComponentActivity() {
                                 defaultValue = -1
                             }
                         )
-                    ) {
+                    ) { backStackEntry ->
                         val viewModel: NoteDetailViewModel = viewModel(
                             factory = NoteDetailViewModel.Factory,
-                            extras = extras
+                            extras = MutableCreationExtras(backStackEntry.defaultViewModelCreationExtras).apply {
+                                set(NoteDetailViewModel.NOTE_USE_CASES_KEY, noteUseCases)
+                            }
                         )
                         NoteDetailScreen(
                             state = viewModel.state.value,
