@@ -2,11 +2,13 @@ package com.example.notesappandroidcompose.data.local
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.example.notesappandroidcompose.domain.model.Attachment
 
 @Entity(tableName = "notes")
 data class NoteEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int? = null,
     val title: String,
-    val content: String
+    val content: String,
+    val attachments: List<Attachment>
 )

@@ -7,7 +7,8 @@ fun NoteEntity.toNote(): Note {
     return Note(
         id = id,
         title = title,
-        content = content
+        content = content,
+        attachments = attachments
     )
 }
 
@@ -15,6 +16,7 @@ fun Note.toNoteEntity(): NoteEntity {
     return NoteEntity(
         id = id,
         title = title,
-        content = content
+        content = content,
+        attachments = attachments
     )
 }

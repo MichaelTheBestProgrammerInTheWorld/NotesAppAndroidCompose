@@ -54,7 +54,8 @@ class NoteDetailViewModel(
                         _state.value = _state.value.copy(
                             title = note.title,
                             content = note.content,
-                            id = note.id
+                            id = note.id,
+                            attachments = note.attachments
                         )
                     }
                 }
@@ -77,13 +78,24 @@ class NoteDetailViewModel(
             is NoteDetailEvent.EnteredContent -> {
                 _state.value = _state.value.copy(content = event.value)
             }
+            is NoteDetailEvent.AddAttachment -> {
+                _state.value = _state.value.copy(
+                    attachments = _state.value.attachments + event.attachment
+                )
+            }
+            is NoteDetailEvent.RemoveAttachment -> {
+                _state.value = _state.value.copy(
+                    attachments = _state.value.attachments.filter { it.uri != event.attachment.uri }
+                )
+            }
             is NoteDetailEvent.SaveNote -> {
                 viewModelScope.launch {
                     noteUseCases.saveNote(
                         Note(
                             title = state.value.title,
                             content = state.value.content,
-                            id = currentNoteId
+                            id = currentNoteId,
+                            attachments = state.value.attachments
                         )
                     )
                     _eventFlow.emit(UiEvent.SaveNote)
@@ -98,7 +110,8 @@ class NoteDetailViewModel(
             _state.value = _state.value.copy(
                 title = it.title,
                 content = it.content,
-                id = it.id
+                id = it.id,
+                attachments = it.attachments
             )
         }
     }

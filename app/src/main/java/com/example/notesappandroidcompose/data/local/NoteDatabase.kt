@@ -2,8 +2,10 @@ package com.example.notesappandroidcompose.data.local
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 
-@Database(entities = [NoteEntity::class], version = 1)
+@Database(entities = [NoteEntity::class], version = 2)
+@TypeConverters(Converters::class)
 abstract class NoteDatabase : RoomDatabase() {
     abstract val noteDao: NoteDao
 

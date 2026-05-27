@@ -14,6 +14,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AttachFile
 import com.example.notesappandroidcompose.domain.model.Note
 
 @Composable
@@ -52,6 +54,14 @@ fun NoteItem(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
                 )
+                if (note.attachments.isNotEmpty()) {
+                    Icon(
+                        imageVector = Icons.Default.AttachFile,
+                        contentDescription = "Has attachments",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp).padding(end = 4.dp)
+                    )
+                }
                 if (isSelected) {
                     Checkbox(checked = true, onCheckedChange = null)
                 }
