@@ -8,6 +8,13 @@ class SaveNoteUseCase(
 ) {
     suspend operator fun invoke(note: Note) {
         if (note.title.isBlank() && note.content.isBlank()) return
-        repository.insertNote(note)
+        
+        val noteToSave = if (note.id == null) {
+            val maxPos = repository.getMaxPosition()
+            note.copy(position = maxPos + 1)
+        } else {
+            note
+        }
+        repository.insertNote(noteToSave)
     }
 }

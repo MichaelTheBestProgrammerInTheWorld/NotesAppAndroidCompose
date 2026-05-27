@@ -22,8 +22,16 @@ class NoteRepositoryImpl(
         return dao.getNoteById(id)?.toNote()
     }
 
+    override suspend fun getMaxPosition(): Int {
+        return dao.getMaxPosition() ?: -1
+    }
+
     override suspend fun insertNote(note: Note) {
         dao.insertNote(note.toNoteEntity())
+    }
+
+    override suspend fun insertNotes(notes: List<Note>) {
+        dao.insertNotes(notes.map { it.toNoteEntity() })
     }
 
     override suspend fun deleteNote(note: Note) {

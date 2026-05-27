@@ -11,5 +11,6 @@ data class NoteEntity(
     val title: String,
     val content: String,
     val attachments: List<Attachment>,
-    val timestamp: Long
+    val timestamp: Long,
+    val position: Int
 )

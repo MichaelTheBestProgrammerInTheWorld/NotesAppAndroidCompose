@@ -31,7 +31,6 @@ fun NoteItem(
     index: Int,
     modifier: Modifier = Modifier,
     isSelected: Boolean = false,
-    onNoteClick: () -> Unit
 ) {
     Card(
         modifier = modifier

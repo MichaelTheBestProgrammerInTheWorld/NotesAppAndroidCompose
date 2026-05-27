@@ -9,7 +9,8 @@ fun NoteEntity.toNote(): Note {
         title = title,
         content = content,
         attachments = attachments,
-        timestamp = timestamp
+        timestamp = timestamp,
+        position = position
     )
 }
 
@@ -19,6 +20,7 @@ fun Note.toNoteEntity(): NoteEntity {
         title = title,
         content = content,
         attachments = attachments,
-        timestamp = timestamp
+        timestamp = timestamp,
+        position = position
     )
 }

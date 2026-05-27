@@ -5,5 +5,6 @@ data class Note(
     val title: String,
     val content: String,
     val attachments: List<Attachment> = emptyList(),
-    val timestamp: Long
+    val timestamp: Long,
+    val position: Int = 0
 )

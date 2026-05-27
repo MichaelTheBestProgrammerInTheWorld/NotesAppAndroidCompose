@@ -40,6 +40,7 @@ class MainActivity : ComponentActivity() {
             getNotes = GetNotesUseCase(repository),
             deleteNote = DeleteNoteUseCase(repository),
             saveNote = SaveNoteUseCase(repository),
+            saveNotes = SaveNotesUseCase(repository),
             getNoteById = GetNoteByIdUseCase(repository)
         )
 

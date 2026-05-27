@@ -9,4 +9,5 @@ sealed class NotesEvent {
     data object DeleteSelectedNotes : NotesEvent()
     data class ShowDeleteConfirmation(val show: Boolean) : NotesEvent()
     data class SearchNotes(val query: String) : NotesEvent()
+    data class MoveNote(val fromIndex: Int, val toIndex: Int) : NotesEvent()
 }
