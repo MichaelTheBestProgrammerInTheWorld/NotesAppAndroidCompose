@@ -91,6 +91,12 @@ class NotesViewModel(
                     isSelectionMode = selected.isNotEmpty()
                 )
             }
+            is NotesEvent.SelectAll -> {
+                _state.value = _state.value.copy(
+                    selectedNotes = _state.value.filteredNotes.toSet(),
+                    isSelectionMode = _state.value.filteredNotes.isNotEmpty()
+                )
+            }
             is NotesEvent.ClearSelection -> {
                 _state.value = _state.value.copy(
                     selectedNotes = emptySet(),

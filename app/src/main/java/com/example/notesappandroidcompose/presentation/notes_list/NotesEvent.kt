@@ -11,6 +11,7 @@ sealed class NotesEvent {
     data object DeleteAllNotes : NotesEvent()
     data object EmptyTrash : NotesEvent()
     data class ToggleSelection(val note: Note) : NotesEvent()
+    data object SelectAll : NotesEvent()
     data object ClearSelection : NotesEvent()
     data object DeleteSelectedNotes : NotesEvent()
     data object SoftDeleteSelectedNotes : NotesEvent()

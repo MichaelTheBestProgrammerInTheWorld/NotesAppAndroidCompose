@@ -147,6 +147,9 @@ fun NotesListScreen(
                             if (state.isSelectionMode) {
                                 when (state.currentView) {
                                     NotesView.Trash -> {
+                                        IconButton(onClick = { onEvent(NotesEvent.SelectAll) }) {
+                                            Icon(Icons.Default.SelectAll, contentDescription = "Select All")
+                                        }
                                         IconButton(onClick = { onEvent(NotesEvent.DeleteSelectedNotes) }) {
                                             Icon(Icons.Default.DeleteForever, contentDescription = "Delete forever")
                                         }
@@ -158,6 +161,9 @@ fun NotesListScreen(
                                         }
                                     }
                                     else -> {
+                                        IconButton(onClick = { onEvent(NotesEvent.SelectAll) }) {
+                                            Icon(Icons.Default.SelectAll, contentDescription = "Select All")
+                                        }
                                         IconButton(onClick = { onEvent(NotesEvent.ArchiveSelectedNotes) }) {
                                             Icon(Icons.Default.Archive, contentDescription = "Archive")
                                         }
