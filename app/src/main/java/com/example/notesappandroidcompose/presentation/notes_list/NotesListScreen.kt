@@ -150,7 +150,13 @@ fun NotesListScreen(
                                         IconButton(onClick = { onEvent(NotesEvent.SelectAll) }) {
                                             Icon(Icons.Default.SelectAll, contentDescription = "Select All")
                                         }
-                                        IconButton(onClick = { onEvent(NotesEvent.DeleteSelectedNotes) }) {
+                                        IconButton(onClick = {
+                                            if (state.selectedNotes.size > 1) {
+                                                onEvent(NotesEvent.ShowDeleteConfirmation(true))
+                                            } else {
+                                                onEvent(NotesEvent.DeleteSelectedNotes)
+                                            }
+                                        }) {
                                             Icon(Icons.Default.DeleteForever, contentDescription = "Delete forever")
                                         }
                                         val firstSelectedNote = state.selectedNotes.firstOrNull()
@@ -167,7 +173,13 @@ fun NotesListScreen(
                                         IconButton(onClick = { onEvent(NotesEvent.ArchiveSelectedNotes) }) {
                                             Icon(Icons.Default.Archive, contentDescription = "Archive")
                                         }
-                                        IconButton(onClick = { onEvent(NotesEvent.SoftDeleteSelectedNotes) }) {
+                                        IconButton(onClick = {
+                                            if (state.selectedNotes.size > 1) {
+                                                onEvent(NotesEvent.ShowDeleteConfirmation(true))
+                                            } else {
+                                                onEvent(NotesEvent.SoftDeleteSelectedNotes)
+                                            }
+                                        }) {
                                             Icon(Icons.Default.Delete, contentDescription = "Move to trash")
                                         }
                                     }
@@ -401,16 +413,35 @@ fun NotesListScreen(
             }
 
             if (state.showDeleteConfirmation) {
+                val isTrash = state.currentView == NotesView.Trash
+                val isMultiple = state.selectedNotes.size > 1
+                
                 AlertDialog(
                     onDismissRequest = { onEvent(NotesEvent.ShowDeleteConfirmation(false)) },
-                    title = { Text(if (state.currentView == NotesView.Trash) "Empty Trash?" else "Delete Selected?") },
-                    text = { Text("Are you sure? This action cannot be undone.") },
+                    title = { 
+                        Text(
+                            when {
+                                !state.isSelectionMode && isTrash -> "Empty Trash?"
+                                isMultiple && isTrash -> "Delete ${state.selectedNotes.size} Notes Forever?"
+                                isMultiple -> "Move ${state.selectedNotes.size} Notes to Trash?"
+                                else -> "Delete Note?"
+                            }
+                        )
+                    },
+                    text = { 
+                        Text(
+                            if (isTrash || (!state.isSelectionMode && isTrash)) 
+                                "Are you sure? This action cannot be undone."
+                            else 
+                                "Are you sure you want to move these notes to the trash?"
+                        )
+                    },
                     confirmButton = {
                         TextButton(onClick = {
-                            if (state.currentView == NotesView.Trash) {
-                                onEvent(NotesEvent.EmptyTrash)
-                            } else {
-                                onEvent(NotesEvent.DeleteSelectedNotes)
+                            when {
+                                !state.isSelectionMode && isTrash -> onEvent(NotesEvent.EmptyTrash)
+                                isTrash -> onEvent(NotesEvent.DeleteSelectedNotes)
+                                else -> onEvent(NotesEvent.SoftDeleteSelectedNotes)
                             }
                             onEvent(NotesEvent.ShowDeleteConfirmation(false))
                         }) {
