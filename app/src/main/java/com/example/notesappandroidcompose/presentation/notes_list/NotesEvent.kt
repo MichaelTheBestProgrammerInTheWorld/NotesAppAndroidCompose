@@ -21,6 +21,7 @@ sealed class NotesEvent {
     data class SearchNotes(val query: String) : NotesEvent()
     data class MoveNote(val fromIndex: Int, val toIndex: Int) : NotesEvent()
     data class ChangeView(val view: NotesView) : NotesEvent()
+    data class ChangeSort(val sortOption: SortOption) : NotesEvent()
     data object ToggleGridView : NotesEvent()
 }
 

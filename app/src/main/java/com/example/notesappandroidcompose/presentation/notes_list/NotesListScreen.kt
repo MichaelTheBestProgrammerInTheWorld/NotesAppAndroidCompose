@@ -54,6 +54,8 @@ fun NotesListScreen(
     val currentIsSelectionMode by rememberUpdatedState(state.isSelectionMode)
     val currentSearchQuery by rememberUpdatedState(state.searchQuery)
 
+    var showSortMenu by remember { mutableStateOf(false) }
+
     // Auto-scroll logic when dragging near edges
     LaunchedEffect(draggedItemIndex != null) {
         if (draggedItemIndex != null && !state.isGridView) {
@@ -144,6 +146,76 @@ fun NotesListScreen(
                             }
                         },
                         actions = {
+                            Box {
+                                IconButton(onClick = { showSortMenu = true }) {
+                                    Icon(Icons.AutoMirrored.Filled.Sort, contentDescription = "Sort")
+                                }
+                                DropdownMenu(
+                                    expanded = showSortMenu,
+                                    onDismissRequest = { showSortMenu = false }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("Manual") },
+                                        onClick = {
+                                            onEvent(NotesEvent.ChangeSort(SortOption.Manual))
+                                            showSortMenu = false
+                                        },
+                                        leadingIcon = {
+                                            if (state.sortOption == SortOption.Manual) {
+                                                Icon(Icons.Default.Check, contentDescription = null)
+                                            }
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text("Newest") },
+                                        onClick = {
+                                            onEvent(NotesEvent.ChangeSort(SortOption.Newest))
+                                            showSortMenu = false
+                                        },
+                                        leadingIcon = {
+                                            if (state.sortOption == SortOption.Newest) {
+                                                Icon(Icons.Default.Check, contentDescription = null)
+                                            }
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text("Oldest") },
+                                        onClick = {
+                                            onEvent(NotesEvent.ChangeSort(SortOption.Oldest))
+                                            showSortMenu = false
+                                        },
+                                        leadingIcon = {
+                                            if (state.sortOption == SortOption.Oldest) {
+                                                Icon(Icons.Default.Check, contentDescription = null)
+                                            }
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text("Title (A-Z)") },
+                                        onClick = {
+                                            onEvent(NotesEvent.ChangeSort(SortOption.TitleAsc))
+                                            showSortMenu = false
+                                        },
+                                        leadingIcon = {
+                                            if (state.sortOption == SortOption.TitleAsc) {
+                                                Icon(Icons.Default.Check, contentDescription = null)
+                                            }
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text("Title (Z-A)") },
+                                        onClick = {
+                                            onEvent(NotesEvent.ChangeSort(SortOption.TitleDesc))
+                                            showSortMenu = false
+                                        },
+                                        leadingIcon = {
+                                            if (state.sortOption == SortOption.TitleDesc) {
+                                                Icon(Icons.Default.Check, contentDescription = null)
+                                            }
+                                        }
+                                    )
+                                }
+                            }
                             if (state.isSelectionMode) {
                                 when (state.currentView) {
                                     NotesView.Trash -> {
@@ -305,8 +377,9 @@ fun NotesListScreen(
                                         onDragStart = { _ ->
                                             val isSearching = currentSearchQuery.isNotEmpty()
                                             val isMultiSelect = state.selectedNotes.size > 1
+                                            val isNotManualSort = state.sortOption != SortOption.Manual
                                             
-                                            if (isSearching || isMultiSelect || state.currentView != NotesView.All) {
+                                            if (isSearching || isMultiSelect || state.currentView != NotesView.All || isNotManualSort) {
                                                 currentOnEvent(NotesEvent.ToggleSelection(currentNote))
                                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                 return@detectDragGesturesAfterLongPress

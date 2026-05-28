@@ -10,6 +10,7 @@ import com.example.notesappandroidcompose.domain.repository.NoteRepository
 import com.example.notesappandroidcompose.domain.use_case.NoteUseCases
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 import androidx.lifecycle.ViewModelProvider
@@ -127,13 +128,16 @@ class NoteDetailViewModel(
             }
             is NoteDetailEvent.SaveNote -> {
                 viewModelScope.launch {
+                    val currentNotes = noteUseCases.getNotes().first()
+                    val maxPosition = currentNotes.maxByOrNull { it.position }?.position ?: -1
                     noteUseCases.saveNote(
                         Note(
                             title = state.value.title,
                             content = state.value.content,
                             id = currentNoteId,
                             attachments = state.value.attachments,
-                            timestamp = System.currentTimeMillis()
+                            timestamp = System.currentTimeMillis(),
+                            position = if (currentNoteId == null) maxPosition + 1 else state.value.position
                         )
                     )
                     _eventFlow.emit(UiEvent.SaveNote)
@@ -149,7 +153,8 @@ class NoteDetailViewModel(
                 title = it.title,
                 content = it.content,
                 id = it.id,
-                attachments = it.attachments
+                attachments = it.attachments,
+                position = it.position
             )
         }
     }

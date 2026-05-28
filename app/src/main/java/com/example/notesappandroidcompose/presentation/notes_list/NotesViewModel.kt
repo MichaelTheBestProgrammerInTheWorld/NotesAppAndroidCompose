@@ -156,6 +156,10 @@ class NotesViewModel(
                 _state.value = _state.value.copy(currentView = event.view)
                 filterNotes()
             }
+            is NotesEvent.ChangeSort -> {
+                _state.value = _state.value.copy(sortOption = event.sortOption)
+                filterNotes()
+            }
             is NotesEvent.ToggleGridView -> {
                 _state.value = _state.value.copy(isGridView = !_state.value.isGridView)
             }
@@ -163,6 +167,8 @@ class NotesViewModel(
     }
 
     private fun moveNote(fromIndex: Int, toIndex: Int) {
+        if (_state.value.sortOption != SortOption.Manual) return
+
         val currentNotes = _state.value.filteredNotes
         if (fromIndex !in currentNotes.indices || toIndex !in currentNotes.indices) return
 
@@ -195,6 +201,7 @@ class NotesViewModel(
     private fun filterNotes() {
         val query = _state.value.searchQuery.lowercase()
         val currentView = _state.value.currentView
+        val sortOption = _state.value.sortOption
         
         val baseNotes = when (currentView) {
             is NotesView.All -> _state.value.notes.filter { !it.isArchived && !it.isDeleted }
@@ -202,17 +209,25 @@ class NotesViewModel(
             is NotesView.Trash -> _state.value.notes.filter { it.isDeleted }
         }
 
-        val sortedNotes = baseNotes.sortedWith(
-            compareByDescending<Note> { it.isPinned }
-                .thenBy { it.position }
-        )
+        val pinnedNotes = baseNotes.filter { it.isPinned }.sortedBy { it.position }
+        val unpinnedNotes = baseNotes.filter { !it.isPinned }
+
+        val sortedUnpinnedNotes = when (sortOption) {
+            SortOption.Manual -> unpinnedNotes.sortedBy { it.position }
+            SortOption.Newest -> unpinnedNotes.sortedByDescending { it.timestamp }
+            SortOption.Oldest -> unpinnedNotes.sortedBy { it.timestamp }
+            SortOption.TitleAsc -> unpinnedNotes.sortedBy { it.title.lowercase() }
+            SortOption.TitleDesc -> unpinnedNotes.sortedByDescending { it.title.lowercase() }
+        }
+
+        val combinedNotes = pinnedNotes + sortedUnpinnedNotes
 
         if (query.isBlank()) {
-            _state.value = _state.value.copy(filteredNotes = sortedNotes)
+            _state.value = _state.value.copy(filteredNotes = combinedNotes)
             return
         }
 
-        val filtered = sortedNotes.filterIndexed { index, note ->
+        val filtered = combinedNotes.filterIndexed { index, note ->
             note.title.lowercase().contains(query) ||
             note.content.lowercase().contains(query) ||
             (index + 1).toString() == query ||

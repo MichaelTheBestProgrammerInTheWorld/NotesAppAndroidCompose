@@ -10,5 +10,14 @@ data class NotesState(
     val isSelectionMode: Boolean = false,
     val showDeleteConfirmation: Boolean = false,
     val currentView: NotesView = NotesView.All,
-    val isGridView: Boolean = false
+    val isGridView: Boolean = false,
+    val sortOption: SortOption = SortOption.Manual
 )
+
+sealed class SortOption {
+    object Manual : SortOption()
+    object Newest : SortOption()
+    object Oldest : SortOption()
+    object TitleAsc : SortOption()
+    object TitleDesc : SortOption()
+}
