@@ -11,6 +11,7 @@ fun NoteEntity.toNote(): Note {
         attachments = attachments,
         timestamp = timestamp,
         position = position,
+        isPinned = isPinned,
         isArchived = isArchived,
         isDeleted = isDeleted
     )
@@ -24,6 +25,7 @@ fun Note.toNoteEntity(): NoteEntity {
         attachments = attachments,
         timestamp = timestamp,
         position = position,
+        isPinned = isPinned,
         isArchived = isArchived,
         isDeleted = isDeleted
     )

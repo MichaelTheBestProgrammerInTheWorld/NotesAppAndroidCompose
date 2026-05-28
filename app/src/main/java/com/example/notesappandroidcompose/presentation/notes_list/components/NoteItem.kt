@@ -18,6 +18,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.runtime.*
 import com.example.notesappandroidcompose.domain.model.Note
 import com.example.notesappandroidcompose.domain.model.AttachmentType
 import coil3.compose.AsyncImage
@@ -33,7 +37,11 @@ fun NoteItem(
     index: Int,
     modifier: Modifier = Modifier,
     isSelected: Boolean = false,
+    onPinClick: () -> Unit = {},
+    onSelectClick: () -> Unit = {}
 ) {
+    var showMenu by remember { mutableStateOf(false) }
+
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -51,9 +59,16 @@ fun NoteItem(
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
+                if (note.isPinned) {
+                    Icon(
+                        imageVector = Icons.Default.PushPin,
+                        contentDescription = "Pinned",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(16.dp).padding(end = 4.dp)
+                    )
+                }
                 Text(
                     text = "${index + 1}. ${note.title}",
                     fontSize = 18.sp,
@@ -64,7 +79,34 @@ fun NoteItem(
                     modifier = Modifier.weight(1f)
                 )
                 if (isSelected) {
-                    Checkbox(checked = true, onCheckedChange = null)
+                    Checkbox(checked = true, onCheckedChange = { onSelectClick() })
+                }
+                
+                Box {
+                    IconButton(onClick = { showMenu = true }) {
+                        Icon(Icons.Default.MoreVert, contentDescription = "More")
+                    }
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(if (note.isPinned) "Unpin" else "Pin") },
+                            leadingIcon = { Icon(Icons.Default.PushPin, contentDescription = null) },
+                            onClick = {
+                                onPinClick()
+                                showMenu = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Select") },
+                            leadingIcon = { Icon(Icons.Default.CheckCircle, contentDescription = null) },
+                            onClick = {
+                                onSelectClick()
+                                showMenu = false
+                            }
+                        )
+                    }
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))

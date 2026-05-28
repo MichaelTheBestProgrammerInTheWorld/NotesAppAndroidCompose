@@ -133,8 +133,14 @@ fun NotesListScreen(
                             )
                         },
                         navigationIcon = {
-                            IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                                Icon(Icons.Default.Menu, contentDescription = "Menu")
+                            if (state.isSelectionMode) {
+                                IconButton(onClick = { onEvent(NotesEvent.ClearSelection) }) {
+                                    Icon(Icons.Default.Close, contentDescription = "Clear Selection")
+                                }
+                            } else {
+                                IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                                    Icon(Icons.Default.Menu, contentDescription = "Menu")
+                                }
                             }
                         },
                         actions = {
@@ -243,7 +249,9 @@ fun NotesListScreen(
                                     } else {
                                         onNoteClick(note)
                                     }
-                                }
+                                },
+                                onPinClick = { onEvent(NotesEvent.TogglePin(note)) },
+                                onSelectClick = { onEvent(NotesEvent.ToggleSelection(note)) }
                             )
                         }
                     }
@@ -376,7 +384,9 @@ fun NotesListScreen(
                                         } else {
                                             onNoteClick(note)
                                         }
-                                    }
+                                    },
+                                    onPinClick = { onEvent(NotesEvent.TogglePin(note)) },
+                                    onSelectClick = { onEvent(NotesEvent.ToggleSelection(note)) }
                                 )
                             }
                         }

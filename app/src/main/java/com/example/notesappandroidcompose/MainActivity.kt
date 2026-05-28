@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity() {
             applicationContext,
             NoteDatabase::class.java,
             NoteDatabase.DATABASE_NAME
-        ).fallbackToDestructiveMigration()
+        ).addMigrations(NoteDatabase.MIGRATION_5_6)
             .build()
         
         val repository = NoteRepositoryImpl(db.noteDao)

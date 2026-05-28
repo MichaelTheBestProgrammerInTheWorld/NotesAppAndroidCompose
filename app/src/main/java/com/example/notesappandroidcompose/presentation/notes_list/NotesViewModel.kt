@@ -4,6 +4,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.notesappandroidcompose.domain.model.Note
 import com.example.notesappandroidcompose.domain.use_case.NoteUseCases
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.launchIn
@@ -90,6 +91,12 @@ class NotesViewModel(
                     isSelectionMode = selected.isNotEmpty()
                 )
             }
+            is NotesEvent.ClearSelection -> {
+                _state.value = _state.value.copy(
+                    selectedNotes = emptySet(),
+                    isSelectionMode = false
+                )
+            }
             is NotesEvent.DeleteSelectedNotes -> {
                 viewModelScope.launch {
                     noteUseCases.deleteNote(_state.value.selectedNotes.toList())
@@ -119,6 +126,16 @@ class NotesViewModel(
                     )
                 }
             }
+            is NotesEvent.TogglePin -> {
+                val pinnedCount = _state.value.notes.count { it.isPinned }
+                if (!event.note.isPinned && pinnedCount >= 5) {
+                    // Maximum of 5 notes can be pinned
+                    return
+                }
+                viewModelScope.launch {
+                    noteUseCases.saveNotes(listOf(event.note.copy(isPinned = !event.note.isPinned)))
+                }
+            }
             is NotesEvent.ShowDeleteConfirmation -> {
                 _state.value = _state.value.copy(showDeleteConfirmation = event.show)
             }
@@ -142,6 +159,13 @@ class NotesViewModel(
     private fun moveNote(fromIndex: Int, toIndex: Int) {
         val currentNotes = _state.value.filteredNotes
         if (fromIndex !in currentNotes.indices || toIndex !in currentNotes.indices) return
+
+        val fromNote = currentNotes[fromIndex]
+        val toNote = currentNotes[toIndex]
+
+        // Restrict drag-and-drop so pinned notes stay within pinned group
+        // and unpinned notes stay within unpinned group.
+        if (fromNote.isPinned != toNote.isPinned) return
 
         val newList = currentNotes.toMutableList()
         val note = newList.removeAt(fromIndex)
@@ -172,12 +196,17 @@ class NotesViewModel(
             is NotesView.Trash -> _state.value.notes.filter { it.isDeleted }
         }
 
+        val sortedNotes = baseNotes.sortedWith(
+            compareByDescending<Note> { it.isPinned }
+                .thenBy { it.position }
+        )
+
         if (query.isBlank()) {
-            _state.value = _state.value.copy(filteredNotes = baseNotes)
+            _state.value = _state.value.copy(filteredNotes = sortedNotes)
             return
         }
 
-        val filtered = baseNotes.filterIndexed { index, note ->
+        val filtered = sortedNotes.filterIndexed { index, note ->
             note.title.lowercase().contains(query) ||
             note.content.lowercase().contains(query) ||
             (index + 1).toString() == query ||
