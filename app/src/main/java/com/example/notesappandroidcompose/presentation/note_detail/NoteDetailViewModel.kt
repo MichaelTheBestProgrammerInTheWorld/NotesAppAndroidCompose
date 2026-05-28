@@ -73,6 +73,7 @@ class NoteDetailViewModel(
 
     sealed class UiEvent {
         data object SaveNote : UiEvent()
+        data class ShowError(val message: String) : UiEvent()
     }
 
     fun onEvent(event: NoteDetailEvent) {
@@ -110,8 +111,13 @@ class NoteDetailViewModel(
                 } else {
                     val file = File(event.context.cacheDir, "recording_${System.currentTimeMillis()}.m4a")
                     currentRecordingFile = file
-                    voiceRecorder?.start(file)
-                    _state.value = _state.value.copy(isRecording = true)
+                    if (voiceRecorder?.start(file) == true) {
+                        _state.value = _state.value.copy(isRecording = true)
+                    } else {
+                        viewModelScope.launch {
+                            _eventFlow.emit(UiEvent.ShowError("Could not start recording"))
+                        }
+                    }
                 }
             }
             is NoteDetailEvent.RemoveAttachment -> {

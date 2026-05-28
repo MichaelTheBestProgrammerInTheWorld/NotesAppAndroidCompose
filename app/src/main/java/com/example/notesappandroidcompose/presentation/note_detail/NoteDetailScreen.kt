@@ -36,6 +36,7 @@ import coil3.compose.AsyncImage
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
+import android.widget.Toast
 import com.example.notesappandroidcompose.domain.model.Attachment
 import com.example.notesappandroidcompose.domain.model.AttachmentType
 import com.mohamedrejeb.richeditor.model.RichTextState
@@ -63,6 +64,12 @@ fun NoteDetailScreen(
     var previewIndex by remember { mutableIntStateOf(-1) }
     val richTextState = rememberRichTextState()
     val voicePlayer = remember { VoicePlayer(context) }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            voicePlayer.stop()
+        }
+    }
 
     // Initial load of content
     LaunchedEffect(state.id) {
@@ -97,6 +104,9 @@ fun NoteDetailScreen(
             when (event) {
                 is NoteDetailViewModel.UiEvent.SaveNote -> {
                     onNavigateBack()
+                }
+                is NoteDetailViewModel.UiEvent.ShowError -> {
+                    Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -231,7 +241,10 @@ fun NoteDetailScreen(
         AttachmentPagerDialog(
             attachments = state.attachments,
             initialIndex = previewIndex,
-            onDismiss = { previewIndex = -1 },
+            onDismiss = {
+                voicePlayer.stop()
+                previewIndex = -1
+            },
             voicePlayer = voicePlayer
         )
     }
@@ -335,6 +348,10 @@ fun AttachmentPagerDialog(
         pageCount = { attachments.size }
     )
     val context = LocalContext.current
+
+    LaunchedEffect(pagerState.currentPage) {
+        voicePlayer.stop()
+    }
 
     Dialog(
         onDismissRequest = onDismiss,

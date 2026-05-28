@@ -6,14 +6,17 @@ import android.os.Build
 import java.io.File
 import java.io.FileOutputStream
 
-class VoiceRecorder(private val context: Context) {
+class VoiceRecorder(context: Context) {
+    private val appContext = context.applicationContext
     private var recorder: MediaRecorder? = null
 
-    fun start(outputFile: File) {
-        try {
+    fun start(outputFile: File): Boolean {
+        return try {
+            stop()
             recorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                MediaRecorder(context)
+                MediaRecorder(appContext)
             } else {
+                @Suppress("DEPRECATION")
                 MediaRecorder()
             }.apply {
                 setAudioSource(MediaRecorder.AudioSource.MIC)
@@ -23,8 +26,10 @@ class VoiceRecorder(private val context: Context) {
                 prepare()
                 start()
             }
+            true
         } catch (e: Exception) {
             e.printStackTrace()
+            false
         }
     }
 
